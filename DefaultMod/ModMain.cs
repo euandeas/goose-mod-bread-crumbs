@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -25,24 +26,32 @@ namespace BreadCrumbs
         {
             // Subscribe to whatever events we want
             InjectionPoints.PostTickEvent += PostTick;
+            InjectionPoints.PostRenderEvent += postRender;
         }
 
-        public void PostTick(GooseEntity g)
+        private void postRender(GooseEntity goose, Graphics g)
         {
             // Do whatever you want here.
             if (GetAsyncKeyState(Keys.T) != 0)
             {
                 if (!feedOut)
                 {
-                    var f = new Form();
-                    f.FormBorderStyle = FormBorderStyle.None;
-                    f.Size = new System.Drawing.Size(85, 85);
-                    f.Location = new System.Drawing.Point(200, 200);
-                    f.Controls.Add(new PictureBox() { ImageLocation = @"crumbs.jpg", SizeMode = PictureBoxSizeMode.AutoSize });
+                    var f = new Form
+                    {
+                        FormBorderStyle = FormBorderStyle.None,
+                        Size = new System.Drawing.Size(85, 85),
+                        Location = new System.Drawing.Point(200, 200)
+                    };
+                    f.Controls.Add(new PictureBox() { ImageLocation = @"crumbs.png", SizeMode = PictureBoxSizeMode.AutoSize });
                     f.Show();
                     feedOut = true;
                 }
             }
+        }
+
+        public void PostTick(GooseEntity g)
+        {
+
         }
     }
 }

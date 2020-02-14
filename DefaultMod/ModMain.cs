@@ -26,10 +26,9 @@ namespace BreadCrumbs
         {
             // Subscribe to whatever events we want
             InjectionPoints.PostTickEvent += PostTick;
-            InjectionPoints.PostRenderEvent += postRender;
         }
 
-        private void postRender(GooseEntity goose, Graphics g)
+        public void PostTick(GooseEntity g)
         {
             // Do whatever you want here.
             if (GetAsyncKeyState(Keys.T) != 0)
@@ -42,16 +41,11 @@ namespace BreadCrumbs
                         Size = new System.Drawing.Size(85, 85),
                         Location = new System.Drawing.Point(200, 200)
                     };
-                    f.Controls.Add(new PictureBox() { ImageLocation = @"crumbs.png", SizeMode = PictureBoxSizeMode.AutoSize });
+                    f.Controls.Add(new PictureBox() { ImageLocation = @"crumbs.jpg", SizeMode = PictureBoxSizeMode.AutoSize });
                     f.Show();
                     feedOut = true;
                 }
             }
-        }
-
-        public void PostTick(GooseEntity g)
-        {
-
         }
     }
 }

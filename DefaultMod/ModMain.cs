@@ -35,11 +35,13 @@ namespace BreadCrumbs
             {
                 if (!feedOut)
                 {
+                    
                     var f = new Form
                     {
                         FormBorderStyle = FormBorderStyle.None,
-                        Size = new System.Drawing.Size(85, 85),
-                        Location = new System.Drawing.Point(200, 200)
+                        Size = new Size(85, 85),
+                        Location = new Point(Control.MousePosition.X, Control.MousePosition.Y),
+                        MinimumSize = new Size(80,80)
                     };
                     f.Controls.Add(new PictureBox() { ImageLocation = @"crumbs.jpg", SizeMode = PictureBoxSizeMode.AutoSize });
                     f.Show();

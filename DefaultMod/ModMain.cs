@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Media;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 // 1. Added the "GooseModdingAPI" project as a reference.
@@ -26,7 +28,8 @@ namespace BreadCrumbs
         int targetY;
 
         string assemblyFolder;
-        string FileName;
+        string PicFileName;
+        string SoundFileName;
 
         int tickCount;
 
@@ -36,7 +39,8 @@ namespace BreadCrumbs
         void IMod.Init()
         {
             assemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            FileName = Path.Combine(assemblyFolder, "crumbs.jpg");
+            PicFileName = Path.Combine(assemblyFolder, "crumbs.jpg");
+            SoundFileName = Path.Combine(assemblyFolder, "nom.wav");
             // Subscribe to whatever events we want
             InjectionPoints.PostTickEvent += PostTick;
         }
@@ -57,9 +61,10 @@ namespace BreadCrumbs
                     CreateForm();
                     f.BringToFront();
                     f.DesktopLocation = new Point(mouseX - 42, mouseY - 42);
-                    f.Controls.Add(new PictureBox() { ImageLocation = FileName, SizeMode = PictureBoxSizeMode.AutoSize });
+                    f.Controls.Add(new PictureBox() { ImageLocation = PicFileName, SizeMode = PictureBoxSizeMode.AutoSize });
                     f.Show();
                     g.targetPos = new Vector2(targetX,targetY);
+                    API.Goose.setTaskRoaming(g);
 
                     feedOut = true;
                 }
@@ -67,7 +72,9 @@ namespace BreadCrumbs
             
             if (feedOut)
             {
+                API.Goose.setTaskRoaming(g);
                 g.targetPos = new Vector2(targetX, targetY);
+                f.BringToFront();
 
                 if (IsGooseOnFood(g))
                 {
@@ -75,8 +82,15 @@ namespace BreadCrumbs
 
                     if (tickCount == 240)
                     {
+                        new Thread(() => {
+                            using (SoundPlayer player = new SoundPlayer(SoundFileName))
+                            {
+                                player.PlaySync();
+                            }
+                        }).Start();
                         f.Dispose();
                         feedOut = false;
+                        tickCount = 0;
                     }
                     
                 }

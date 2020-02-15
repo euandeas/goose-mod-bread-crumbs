@@ -49,7 +49,7 @@ namespace BreadCrumbs
         {
 
             // Do whatever you want here.
-            if (GetAsyncKeyState(Keys.T) != 0)
+            if (GetAsyncKeyState(Keys.RShiftKey) != 0)
             {
                 if (!feedOut)
                 {
@@ -59,10 +59,11 @@ namespace BreadCrumbs
                     targetY = Input.mouseY;
 
                     CreateForm();
-                    f.BringToFront();
                     f.DesktopLocation = new Point(mouseX - 42, mouseY - 42);
                     f.Controls.Add(new PictureBox() { ImageLocation = PicFileName, SizeMode = PictureBoxSizeMode.AutoSize });
                     f.Show();
+
+                    API.Goose.playHonckSound();
                     g.targetPos = new Vector2(targetX,targetY);
                     API.Goose.setTaskRoaming(g);
 
@@ -74,7 +75,6 @@ namespace BreadCrumbs
             {
                 API.Goose.setTaskRoaming(g);
                 g.targetPos = new Vector2(targetX, targetY);
-                f.BringToFront();
 
                 if (IsGooseOnFood(g))
                 {
@@ -88,6 +88,7 @@ namespace BreadCrumbs
                                 player.PlaySync();
                             }
                         }).Start();
+                        
                         f.Dispose();
                         feedOut = false;
                         tickCount = 0;
@@ -105,7 +106,8 @@ namespace BreadCrumbs
                 FormBorderStyle = FormBorderStyle.None,
                 Size = new Size(85, 85),
                 StartPosition = FormStartPosition.Manual,
-                MinimumSize = new Size(80, 80)
+                MinimumSize = new Size(80, 80),
+                TopMost = true
             };
         }
 

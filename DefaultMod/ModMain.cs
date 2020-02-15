@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,17 +25,25 @@ namespace BreadCrumbs
         int targetX;
         int targetY;
 
+        string assemblyFolder;
+        string FileName;
+
+        int tickCount;
+
         Form f;
         // Gets called automatically, passes in a class that contains pointers to
         // useful functions we need to interface with the goose.
         void IMod.Init()
         {
+            assemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            FileName = Path.Combine(assemblyFolder, "crumbs.jpg");
             // Subscribe to whatever events we want
             InjectionPoints.PostTickEvent += PostTick;
         }
 
         public void PostTick(GooseEntity g)
         {
+
             // Do whatever you want here.
             if (GetAsyncKeyState(Keys.T) != 0)
             {
@@ -48,9 +57,10 @@ namespace BreadCrumbs
                     CreateForm();
                     f.BringToFront();
                     f.DesktopLocation = new Point(mouseX - 42, mouseY - 42);
-                    f.Controls.Add(new PictureBox() { ImageLocation = @"crumbs.jpg", SizeMode = PictureBoxSizeMode.AutoSize });
+                    f.Controls.Add(new PictureBox() { ImageLocation = FileName, SizeMode = PictureBoxSizeMode.AutoSize });
                     f.Show();
                     g.targetPos = new Vector2(targetX,targetY);
+
                     feedOut = true;
                 }
             }
@@ -61,8 +71,14 @@ namespace BreadCrumbs
 
                 if (IsGooseOnFood(g))
                 {
-                    f.Dispose();
-                    feedOut = false;
+                    tickCount += 1;
+
+                    if (tickCount == 240)
+                    {
+                        f.Dispose();
+                        feedOut = false;
+                    }
+                    
                 }
             }
 
@@ -83,14 +99,6 @@ namespace BreadCrumbs
         {
             float xDif = g.position.x - g.targetPos.x;
             float yDif = g.position.y - g.targetPos.y;
-
-            using (StreamWriter sr = new StreamWriter("CDriveDirs.txt"))
-            {
-                sr.WriteLine(xDif);
-                sr.WriteLine(yDif);
-                sr.WriteLine("");
-            }
-
 
             if (((-50 < xDif) && (xDif < 50)) && ((-50 < yDif) && (yDif < 50)))
             {

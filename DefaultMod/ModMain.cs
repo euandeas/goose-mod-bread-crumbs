@@ -24,25 +24,34 @@ namespace BreadCrumbs
         public static extern short GetAsyncKeyState(Keys vKey);
 
         bool feedOut = false;
-        int targetX;
-        int targetY;
+        Vector2 targetVector;
+        Point pointOfCrumbs;
 
-        string assemblyFolder;
-        string PicFileName;
         string SoundFileName;
+        Image theImage;
 
         int tickCount;
-
-        Form f;
         // Gets called automatically, passes in a class that contains pointers to
         // useful functions we need to interface with the goose.
         void IMod.Init()
         {
-            assemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            PicFileName = Path.Combine(assemblyFolder, "crumbs.jpg");
+            string assemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string PicFileName = Path.Combine(assemblyFolder, "crumbs.jpg");
             SoundFileName = Path.Combine(assemblyFolder, "nom.wav");
+            theImage = Image.FromFile(PicFileName);
+
             // Subscribe to whatever events we want
             InjectionPoints.PostTickEvent += PostTick;
+            InjectionPoints.PreRenderEvent += PreRenderEvent;
+        }
+
+        private void PreRenderEvent(GooseEntity goose, Graphics g)
+        {
+            if (feedOut)
+            {
+                g.DrawImage(theImage, pointOfCrumbs.X, pointOfCrumbs.Y, 85, 85);
+            }
+            
         }
 
         public void PostTick(GooseEntity g)
@@ -53,28 +62,21 @@ namespace BreadCrumbs
             {
                 if (!feedOut)
                 {
-                    int mouseX = Cursor.Position.X;
-                    int mouseY = Cursor.Position.Y;
-                    targetX = Input.mouseX;
-                    targetY = Input.mouseY;
+                    feedOut = true;
+                    targetVector = new Vector2(Input.mouseX, Input.mouseY);
 
-                    CreateForm();
-                    f.DesktopLocation = new Point(mouseX - 42, mouseY - 42);
-                    f.Controls.Add(new PictureBox() { ImageLocation = PicFileName, SizeMode = PictureBoxSizeMode.AutoSize });
-                    f.Show();
+                    pointOfCrumbs = new Point(Cursor.Position.X - 42, Cursor.Position.Y - 42);
 
                     API.Goose.playHonckSound();
-                    g.targetPos = new Vector2(targetX,targetY);
+                    g.targetPos = targetVector;
                     API.Goose.setTaskRoaming(g);
-
-                    feedOut = true;
                 }
             }
             
             if (feedOut)
             {
                 API.Goose.setTaskRoaming(g);
-                g.targetPos = new Vector2(targetX, targetY);
+                g.targetPos = targetVector;
 
                 if (IsGooseOnFood(g))
                 {
@@ -88,8 +90,7 @@ namespace BreadCrumbs
                                 player.PlaySync();
                             }
                         }).Start();
-                        
-                        f.Dispose();
+
                         feedOut = false;
                         tickCount = 0;
                     }
@@ -97,18 +98,6 @@ namespace BreadCrumbs
                 }
             }
 
-        }
-
-        private void CreateForm()
-        {
-            f = new Form
-            {
-                FormBorderStyle = FormBorderStyle.None,
-                Size = new Size(85, 85),
-                StartPosition = FormStartPosition.Manual,
-                MinimumSize = new Size(80, 80),
-                TopMost = true
-            };
         }
 
         public bool IsGooseOnFood(GooseEntity g)

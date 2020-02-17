@@ -36,7 +36,7 @@ namespace BreadCrumbs
         void IMod.Init()
         {
             string assemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string PicFileName = Path.Combine(assemblyFolder, "crumbs.jpg");
+            string PicFileName = Path.Combine(assemblyFolder, "crumbs.png");
             SoundFileName = Path.Combine(assemblyFolder, "nom.wav");
             theImage = Image.FromFile(PicFileName);
 

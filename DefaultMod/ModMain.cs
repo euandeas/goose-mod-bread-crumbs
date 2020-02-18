@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Media;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 // 1. Added the "GooseModdingAPI" project as a reference.
 // 2. Compile this.
@@ -49,7 +44,7 @@ namespace BreadCrumbs
         {
             if (feedOut)
             {
-                g.DrawImage(theImage, pointOfCrumbs.X, pointOfCrumbs.Y, 85, 85);
+                g.DrawImage(theImage, pointOfCrumbs.X, pointOfCrumbs.Y, 80, 80);
             }
             
         }
@@ -58,29 +53,29 @@ namespace BreadCrumbs
         {
 
             // Do whatever you want here.
-            if (GetAsyncKeyState(Keys.RShiftKey) != 0)
+            if ((GetAsyncKeyState(Keys.RShiftKey) != 0))
             {
                 if (!feedOut)
                 {
                     feedOut = true;
-                    targetVector = new Vector2(Input.mouseX, Input.mouseY);
-
+                    targetVector = new Vector2(Input.mouseX-20, Input.mouseY+20);
                     pointOfCrumbs = new Point(Cursor.Position.X - 42, Cursor.Position.Y - 42);
 
                     API.Goose.playHonckSound();
                     g.targetPos = targetVector;
                     API.Goose.setTaskRoaming(g);
+                    API.Goose.setSpeed(g, GooseEntity.SpeedTiers.Charge);
                 }
             }
             
             if (feedOut)
             {
-                API.Goose.setTaskRoaming(g);
-                g.targetPos = targetVector;
-
-                if (IsGooseOnFood(g))
+                if (API.Goose.isGooseAtTarget(g,10))
                 {
                     tickCount += 1;
+                    g.direction = -20;
+                    API.Goose.setSpeed(g, GooseEntity.SpeedTiers.Walk);
+                    API.Goose.setTaskRoaming(g);
 
                     if (tickCount == 240)
                     {
@@ -89,29 +84,18 @@ namespace BreadCrumbs
                             {
                                 player.PlaySync();
                             }
-                        }).Start();
+                        }).Start(); 
 
                         feedOut = false;
                         tickCount = 0;
-                    }
-                    
+                        g.targetPos = targetVector + new Vector2(20, -20);
+                    }   
                 }
-            }
-
-        }
-
-        public bool IsGooseOnFood(GooseEntity g)
-        {
-            float xDif = g.position.x - g.targetPos.x;
-            float yDif = g.position.y - g.targetPos.y;
-
-            if (((-50 < xDif) && (xDif < 50)) && ((-50 < yDif) && (yDif < 50)))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
+                else
+                {
+                    API.Goose.setTaskRoaming(g);
+                    API.Goose.setSpeed(g, GooseEntity.SpeedTiers.Charge);
+                }
             }
         }
     }

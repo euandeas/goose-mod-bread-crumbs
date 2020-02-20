@@ -95,6 +95,7 @@ namespace BreadCrumbs
                 {
                     API.Goose.setTaskRoaming(g);
                     API.Goose.setSpeed(g, GooseEntity.SpeedTiers.Charge);
+                    g.targetPos = targetVector;
                 }
             }
         }

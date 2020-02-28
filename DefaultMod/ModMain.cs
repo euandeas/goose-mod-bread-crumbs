@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Media;
 using System.Reflection;
@@ -23,7 +24,8 @@ namespace BreadCrumbs
         private Image theImage;
 
         private int tickCount;
-
+        private string keyBind;
+        private int imageSize;
         void IMod.Init()
         {
             string assemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -31,25 +33,61 @@ namespace BreadCrumbs
             SoundFileName = Path.Combine(assemblyFolder, "nom.wav");
             theImage = Image.FromFile(PicFileName);
 
+            CheckConfig(assemblyFolder);
+
             InjectionPoints.PostTickEvent += PostTick;
             InjectionPoints.PreRenderEvent += PreRenderEvent;
+        }
+
+        private void CheckConfig(string assemFolder)
+        {
+            string path = Path.Combine(assemFolder, "Config.txt");
+            try
+            {
+                using (TextReader textReader = new StreamReader(new FileStream(path, FileMode.Open)))
+                {
+                    string text;
+                    while ((text = textReader.ReadLine()) != null)
+                    {
+                        if (text.StartsWith("KeyName"))
+                        {
+                            int num = text.IndexOf("=") + 1;
+                            keyBind = text.Substring(num, text.Length - num).Trim();
+                        }
+                        if (text.StartsWith("ImageSize"))
+                        {
+                            int num = text.IndexOf("=") + 1;
+                            imageSize = Convert.ToInt32(text.Substring(num, text.Length - num).Trim());
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                using (StreamWriter streamWriter = File.Exists(path) ? File.AppendText(path) : File.CreateText(path))
+                {
+                    MessageBox.Show("Config.txt for BreadCrumbs was not found.\nMaking config file please restart", "Mod Error", MessageBoxButtons.OK, MessageBoxIcon.Hand);
+                    streamWriter.WriteLine("KeyName=RShiftKey");
+                    streamWriter.WriteLine("ImageSize=80");
+                }
+            }
         }
 
         private void PreRenderEvent(GooseEntity goose, Graphics g)
         {
             if (feedOut)
             {
-                g.DrawImage(theImage, pointOfCrumbs.X, pointOfCrumbs.Y, 80, 80);
+                g.DrawImage(theImage, pointOfCrumbs.X, pointOfCrumbs.Y, imageSize, imageSize);
             } 
         }
 
         public void PostTick(GooseEntity g)
         {
-            if ((GetAsyncKeyState(Keys.RShiftKey) != 0) && !feedOut)
+            if ((GetAsyncKeyState((Keys)Enum.Parse(typeof(Keys), keyBind, true)) != 0) && !feedOut)
             {
                 feedOut = true;
-                targetVector = new Vector2(Input.mouseX-20, Input.mouseY+20);
-                pointOfCrumbs = new Point(Cursor.Position.X - 42, Cursor.Position.Y - 42);
+                targetVector = new Vector2(Input.mouseX- (imageSize / 4), Input.mouseY+(imageSize / 4));
+                pointOfCrumbs = new Point(Cursor.Position.X - (imageSize / 2), Cursor.Position.Y - (imageSize / 2));
 
                 API.Goose.playHonckSound();
                 g.targetPos = targetVector;

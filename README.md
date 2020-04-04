@@ -10,6 +10,6 @@
 
 **Changing Crumbs**: 
 
-  You can change the image used for the crumbs by renaming a different .png to "crumbs.png" and putting it inside the BreadCrumbs folder.     This image can be any size as it will be scaled down by the mod. You are also able to chnage the size of the image shown by the mod in     the Config.txt. It must be a whole number.
+  You can change the image used for the crumbs by renaming a different .png to "crumbs.png" and putting it inside the BreadCrumbs folder.     This image can be any size as it will be scaled down by the mod. You are also able to change the size of the image shown by the mod in     the Config.txt. It must be a whole number.
 
 Honk!

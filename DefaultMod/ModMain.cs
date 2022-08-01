@@ -4,7 +4,6 @@ using System.IO;
 using System.Media;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Windows.Forms;
 using GooseShared;
 using SamEngine;
@@ -20,18 +19,25 @@ namespace BreadCrumbs
         private Vector2 targetVector;
         private Point pointOfCrumbs;
 
-        private string SoundFileName;
-        private Image theImage;
+        private SoundPlayer soundplayer;
+        private Image img;
 
         private int tickCount;
         private string keyBind;
-        private int imageSize;
+        private int imgWidth;
+        private int imgHeight;
+        
         void IMod.Init()
         {
             string assemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string PicFileName = Path.Combine(assemblyFolder, "crumbs.png");
-            SoundFileName = Path.Combine(assemblyFolder, "nom.wav");
-            theImage = Image.FromFile(PicFileName);
+            string SoundFileName = Path.Combine(assemblyFolder, "nom.wav");
+
+            soundplayer = new SoundPlayer(SoundFileName);
+            img = Image.FromFile(PicFileName);
+            
+            imgWidth = img.Width;
+            imgHeight = img.Height;
 
             CheckConfig(assemblyFolder);
 
@@ -54,11 +60,6 @@ namespace BreadCrumbs
                             int num = text.IndexOf("=") + 1;
                             keyBind = text.Substring(num, text.Length - num).Trim();
                         }
-                        if (text.StartsWith("ImageSize"))
-                        {
-                            int num = text.IndexOf("=") + 1;
-                            imageSize = Convert.ToInt32(text.Substring(num, text.Length - num).Trim());
-                        }
                     }
                 }
             }
@@ -68,7 +69,6 @@ namespace BreadCrumbs
                 {
                     MessageBox.Show("Config.txt for BreadCrumbs was not found.\nMaking config file please restart", "Mod Error", MessageBoxButtons.OK, MessageBoxIcon.Hand);
                     streamWriter.WriteLine("KeyName=RShiftKey");
-                    streamWriter.WriteLine("ImageSize=80");
                 }
             }
         }
@@ -77,7 +77,7 @@ namespace BreadCrumbs
         {
             if (feedOut)
             {
-                g.DrawImage(theImage, pointOfCrumbs.X, pointOfCrumbs.Y, imageSize, imageSize);
+                g.DrawImage(img, pointOfCrumbs.X, pointOfCrumbs.Y, imgWidth, imgHeight);
             } 
         }
 
@@ -86,11 +86,11 @@ namespace BreadCrumbs
             if ((GetAsyncKeyState((Keys)Enum.Parse(typeof(Keys), keyBind, true)) != 0) && !feedOut)
             {
                 feedOut = true;
-                targetVector = new Vector2(Input.mouseX- (imageSize / 4), Input.mouseY+(imageSize / 4));
-                pointOfCrumbs = new Point(Cursor.Position.X - (imageSize / 2), Cursor.Position.Y - (imageSize / 2));
+                targetVector = new Vector2(Input.mouseX- (imgWidth / 4), Input.mouseY+(imgHeight / 4));
+                pointOfCrumbs = new Point(Cursor.Position.X - (imgWidth / 2), Cursor.Position.Y - (imgHeight / 2));
+                g.targetPos = targetVector;
 
                 API.Goose.playHonckSound();
-                g.targetPos = targetVector;
                 API.Goose.setTaskRoaming(g);
                 API.Goose.setSpeed(g, GooseEntity.SpeedTiers.Charge);
             }
@@ -105,12 +105,7 @@ namespace BreadCrumbs
 
                     if (tickCount == 240)
                     {
-                        new Thread(() => {
-                            using (SoundPlayer player = new SoundPlayer(SoundFileName))
-                            {
-                                player.PlaySync();
-                            }
-                        }).Start(); 
+                        soundplayer.Play();
 
                         feedOut = false;
                         tickCount = 0;
